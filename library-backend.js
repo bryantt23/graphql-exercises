@@ -111,6 +111,7 @@ const typeDefs = gql`
       published: Int!
       genres: [String!]!
     ): Book
+    editAuthor(name: String!, setBornTo: Int!): Author
   }
 `;
 const resolvers = {
@@ -157,6 +158,20 @@ const resolvers = {
       books = books.concat(book);
       console.log('books last', books[books.length - 1]);
       return book;
+    },
+    editAuthor: (root, args) => {
+      console.log('editAuthor');
+      console.log('args ', args);
+      const { name } = args;
+      console.log('name ', name);
+      let author = authors.find(a => a.name === name);
+      if (!author) {
+        console.log('does not exist');
+        return null;
+      } else {
+        author.born = args.setBornTo;
+        return author;
+      }
     }
   },
   Book: {
