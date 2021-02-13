@@ -1,6 +1,35 @@
 const { ApolloServer, gql } = require('apollo-server');
 const { v4: uuid } = require('uuid');
+const mongoose = require('mongoose');
+const config = require('./utils/config');
+const Book = require('./models/Book');
 
+mongoose.connect(config.mongoUrl, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+  useCreateIndex: true
+});
+
+async function getBooks() {
+  console.log('get books!');
+  await Book.find({})
+    // .populate('user', 'username name id')
+    .exec((err, books) => {
+      let blogMap = {};
+
+      console.log('books', books);
+      // blogs.forEach(blog => {
+      //   blogMap[blog._id] = blog;
+      // });
+
+      return books;
+    });
+}
+
+getBooks();
+
+/*
 let authors = [
   {
     name: 'Robert Martin',
@@ -26,12 +55,14 @@ let authors = [
     id: 'afa5b6f3-344d-11e9-a414-719c6709cf3e'
   }
 ];
+*/
 
 /*
  * Saattaisi olla järkevämpää assosioida kirja ja sen tekijä tallettamalla kirjan yhteyteen tekijän nimen sijaan tekijän id
  * Yksinkertaisuuden vuoksi tallennamme kuitenkin kirjan yhteyteen tekijän nimen
  */
 
+/*
 let books = [
   {
     title: 'Clean Code',
@@ -83,6 +114,7 @@ let books = [
     genres: ['classic', 'revolution']
   }
 ];
+*/
 
 const typeDefs = gql`
   type Query {
@@ -95,8 +127,8 @@ const typeDefs = gql`
     title: String!
     published: Int!
     author: String!
-    id: String!
     genres: [String!]!
+    id: ID!
   }
   type Author {
     name: String!
@@ -123,7 +155,9 @@ const resolvers = {
       return books.filter(book => book.author === args).length;
     },
     authorCount: () => authors.length,
-    allBooks: (root, args) => {
+    allBooks: async (root, args) => {
+      const bks = await getBooks();
+      console.log('bks', bks);
       console.log('args', args);
       if (!args.author && !args.genre) {
         return books;
