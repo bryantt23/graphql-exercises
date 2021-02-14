@@ -82,21 +82,33 @@ const resolvers = {
     }
   },
   Mutation: {
-    addBook: (root, args) => {
+    addBook: async (root, args) => {
       const book = { ...args, id: uuid() };
+      console.log('...args', args);
       const { author } = book;
       console.log('author ', author);
-      if (!authors.find(a => a.name === author)) {
-        console.log('does not exist');
-        authors = authors.concat({ name: author, id: uuid() });
-      } else {
-        console.log('does  exist');
-      }
+      let authors = await getAuthors();
       console.log('authors ', authors);
-      console.log('book ', book);
-      console.log('addBook ', args);
-      books = books.concat(book);
-      console.log('books last', books[books.length - 1]);
+      const authorFromDb = authors.find(a => a.name === author);
+      if (!authorFromDb) {
+        console.log('authorFromDb does not exist');
+        // authors = authors.concat({ name: author, id: uuid() });
+        //post new author
+        const newAuthor = await new Author({ name: author });
+        const result = await newAuthor.save();
+        console.log(result);
+      } else {
+        console.log('authorFromDb does exist');
+      }
+
+      //create new book & post to db
+      // const newBook = await new Book({ ...request.body, user });
+
+      // console.log('authors ', authors);
+      // console.log('book ', book);
+      // console.log('addBook ', args);
+      // books = books.concat(book);
+      // console.log('books last', books[books.length - 1]);
       return book;
     },
     editAuthor: (root, args) => {
