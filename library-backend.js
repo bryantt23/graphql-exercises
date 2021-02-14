@@ -89,14 +89,13 @@ const resolvers = {
       }
 
       // /*
-      // // else if (args.author && args.genre) {
-      // //   return books
-      // //     .filter(book => book.author === args.author)
-      // //     .filter(book => book.genres.includes(args.genre));
-      // // }
-      // // else if (args.author) {
-      // //   return books.filter(book => book.author === args.author);
-      // // }
+      else if (args.author && args.genre) {
+        return booksWithAuthors
+          .filter(book => book.author === args.author)
+          .filter(book => book.genres.includes(args.genre));
+      } else if (args.author) {
+        return booksWithAuthors.filter(book => book.author === args.author);
+      }
       // */
       else {
         return booksWithAuthors.filter(book =>
