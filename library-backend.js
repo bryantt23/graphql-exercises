@@ -89,20 +89,22 @@ const resolvers = {
       console.log('author ', author);
       let authors = await getAuthors();
       console.log('authors ', authors);
-      const authorFromDb = authors.find(a => a.name === author);
+      let authorFromDb = authors.find(a => a.name === author);
       if (!authorFromDb) {
         console.log('authorFromDb does not exist');
         // authors = authors.concat({ name: author, id: uuid() });
         //post new author
-        const newAuthor = await new Author({ name: author });
-        const result = await newAuthor.save();
-        console.log(result);
+        authorFromDb = await new Author({ name: author });
+        const result = await authorFromDb.save();
+        console.log('new author', result);
       } else {
-        console.log('authorFromDb does exist');
+        console.log('authorFromDb does exist', authorFromDb);
       }
 
       //create new book & post to db
-      // const newBook = await new Book({ ...request.body, user });
+      const newBook = await new Book({ ...args, author: authorFromDb._id });
+      const result = await newBook.save();
+      console.log('new book', result);
 
       // console.log('authors ', authors);
       // console.log('book ', book);
