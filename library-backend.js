@@ -79,25 +79,15 @@ const resolvers = {
         return book;
       });
 
-      console.log('booksWithAuthors', booksWithAuthors);
-
-      // return booksWithAuthors;
-
-      // console.log('books', books);
       if (!args.author && !args.genre) {
         return booksWithAuthors;
-      }
-
-      // /*
-      else if (args.author && args.genre) {
+      } else if (args.author && args.genre) {
         return booksWithAuthors
           .filter(book => book.author === args.author)
           .filter(book => book.genres.includes(args.genre));
       } else if (args.author) {
         return booksWithAuthors.filter(book => book.author === args.author);
-      }
-      // */
-      else {
+      } else {
         return booksWithAuthors.filter(book =>
           book.genres.includes(args.genre)
         );
@@ -141,7 +131,8 @@ const resolvers = {
       // console.log('books last', books[books.length - 1]);
       return book;
     },
-    editAuthor: (root, args) => {
+    editAuthor: async (root, args) => {
+      let authors = await getAuthors();
       console.log('editAuthor');
       console.log('args ', args);
       const { name } = args;
@@ -151,8 +142,19 @@ const resolvers = {
         console.log('does not exist');
         return null;
       } else {
-        author.born = args.setBornTo;
-        return author;
+        console.log('author', author);
+        console.log('does exist');
+        const updatedAuthor = await Author.findOne({ _id: author.id }).catch(
+          err => {
+            console.log('err', err);
+          }
+        );
+        updatedAuthor.born = args.setBornTo;
+        updatedAuthor.save().catch(function (err) {
+          console.log('err', err);
+        });
+
+        return updatedAuthor;
       }
     }
   },
