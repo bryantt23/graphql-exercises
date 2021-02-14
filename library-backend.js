@@ -20,6 +20,11 @@ async function getAuthors() {
   return await Author.find({});
 }
 
+// https://stackoverflow.com/questions/7503450/how-do-you-turn-a-mongoose-document-into-a-plain-object
+async function getPopulatedBooks() {
+  return await Book.find({}).lean().populate('author', 'name').exec();
+}
+
 const typeDefs = gql`
   type Query {
     bookCount: Int!
@@ -64,18 +69,36 @@ const resolvers = {
       return authors.length;
     },
     allBooks: async (root, args) => {
-      let books = await getBooks();
-      console.log('books', books);
       console.log('args', args);
+      let booksWithAuthors = await getPopulatedBooks();
+      // console.log('booksWithAuthors', booksWithAuthors);
+
+      booksWithAuthors = booksWithAuthors.map(book => {
+        console.log('book.author.name', book.author.name);
+        book.author = book.author.name;
+        return book;
+      });
+
+      console.log('booksWithAuthors', booksWithAuthors);
+
+      // return booksWithAuthors;
+
+      // console.log('books', books);
       if (!args.author && !args.genre) {
-        return books;
-      } else if (args.author && args.genre) {
-        return books
-          .filter(book => book.author === args.author)
-          .filter(book => book.genres.includes(args.genre));
-      } else if (args.author) {
-        return books.filter(book => book.author === args.author);
-      } else {
+        return booksWithAuthors;
+      }
+
+      // /*
+      // // else if (args.author && args.genre) {
+      // //   return books
+      // //     .filter(book => book.author === args.author)
+      // //     .filter(book => book.genres.includes(args.genre));
+      // // }
+      // // else if (args.author) {
+      // //   return books.filter(book => book.author === args.author);
+      // // }
+      // */
+      else {
         return books.filter(book => book.genres.includes(args.genre));
       }
     },
@@ -143,7 +166,12 @@ const resolvers = {
     name: root => root.name,
     born: root => root.born,
     id: root => root.id,
-    bookCount: root => books.filter(book => book.author === root.name).length
+    bookCount: async root => {
+      const booksAuthors = await getPopulatedBooks();
+      return booksAuthors.filter(book => {
+        return book.author.name === root.name;
+      }).length;
+    }
   }
 };
 
