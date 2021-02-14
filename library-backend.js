@@ -3,6 +3,7 @@ const { v4: uuid } = require('uuid');
 const mongoose = require('mongoose');
 const config = require('./utils/config');
 const Book = require('./models/Book');
+const Author = require('./models/Author');
 
 mongoose.connect(config.mongoUrl, {
   useNewUrlParser: true,
@@ -15,7 +16,9 @@ async function getBooks() {
   return await Book.find({});
 }
 
-getBooks();
+async function getAuthors() {
+  return await Author.find({});
+}
 
 const typeDefs = gql`
   type Query {
@@ -72,7 +75,9 @@ const resolvers = {
         return books.filter(book => book.genres.includes(args.genre));
       }
     },
-    allAuthors: () => {
+    allAuthors: async () => {
+      let authors = await getAuthors();
+      console.log('authors', authors);
       return authors;
     }
   },
