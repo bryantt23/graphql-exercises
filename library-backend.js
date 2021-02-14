@@ -99,7 +99,9 @@ const resolvers = {
       // // }
       // */
       else {
-        return books.filter(book => book.genres.includes(args.genre));
+        return booksWithAuthors.filter(book =>
+          book.genres.includes(args.genre)
+        );
       }
     },
     allAuthors: async () => {
