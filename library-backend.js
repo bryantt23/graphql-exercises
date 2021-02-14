@@ -52,13 +52,17 @@ const typeDefs = gql`
 `;
 const resolvers = {
   Query: {
-    bookCount: args => {
+    bookCount: async args => {
+      let books = await getBooks();
       if (!args) {
         return books.length;
       }
       return books.filter(book => book.author === args).length;
     },
-    authorCount: () => authors.length,
+    authorCount: async () => {
+      let authors = await getAuthors();
+      return authors.length;
+    },
     allBooks: async (root, args) => {
       let books = await getBooks();
       console.log('books', books);
