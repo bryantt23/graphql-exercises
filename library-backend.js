@@ -111,6 +111,10 @@ const resolvers = {
       let authors = await getAuthors();
       console.log('authors', authors);
       return authors;
+    },
+    me: (root, args, context) => {
+      console.log('me', context.user);
+      return context.user;
     }
   },
   Mutation: {
@@ -133,15 +137,21 @@ const resolvers = {
         throw new UserInputError('wrong credentials');
       }
 
-      const userForToken = {
-        username: user.username,
-        id: user._id
-      };
+      let token = jwt.sign(
+        {
+          username: user.username
+        },
+        JWT_SECRET
+      );
 
-      return { value: jwt.sign(userForToken, JWT_SECRET) };
+      return { value: token };
     },
 
-    addBook: async (root, args) => {
+    addBook: async (root, args, context) => {
+      console.log('context', context);
+      if (!context.user) {
+        throw new UserInputError('Access denied');
+      }
       const book = { ...args, id: uuid() };
       console.log('...args', args);
       const { author } = book;
@@ -175,14 +185,12 @@ const resolvers = {
         });
       }
 
-      // console.log('authors ', authors);
-      // console.log('book ', book);
-      // console.log('addBook ', args);
-      // books = books.concat(book);
-      // console.log('books last', books[books.length - 1]);
       return book;
     },
     editAuthor: async (root, args) => {
+      if (!context.user) {
+        throw new UserInputError('Access denied');
+      }
       let authors = await getAuthors();
       console.log('editAuthor');
       console.log('args ', args);
@@ -233,11 +241,13 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: async ({ req }) => {
-    const auth = req ? req.headers.authorization : null;
-    if (auth && auth.toLowerCase().startsWith('bearer')) {
-      const decodedToken = jwt.verify(auth.substring(7), JWT_SECRET);
-      const currentUser = await UserInputError.findById(decodedToken.id);
-      return { currentUser };
+    let auth = req ? req.headers.authorization : null;
+    if (auth && auth.toLowerCase().startsWith('bearer ')) {
+      let decodedToken = jwt.verify(auth.substring(7), process.env.SECRET);
+      console.log('hi', decodedToken);
+      let user = await User.findOne({ username: decodedToken.username });
+      console.log('user', user);
+      return { user };
     }
   }
 });
