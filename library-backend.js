@@ -173,6 +173,8 @@ const resolvers = {
         const result = await authorFromDb.save();
         console.log('new author', result);
       } else {
+        authorFromDb.bookCount = authorFromDb.bookCount + 1;
+        await authorFromDb.save();
         console.log('authorFromDb does exist', authorFromDb);
       }
 
@@ -236,12 +238,7 @@ const resolvers = {
     name: root => root.name,
     born: root => root.born,
     id: root => root.id,
-    bookCount: async root => {
-      const booksAuthors = await getPopulatedBooks();
-      return booksAuthors.filter(book => {
-        return book.author.name === root.name;
-      }).length;
-    }
+    bookCount: root => root.bookCount
   },
   Subscription: {
     bookAdded: {
